@@ -17,7 +17,8 @@ export async function filterImageFromURL(inputURL: string): Promise<string> {
 
             const outpath = '/tmp/filtered.' + Math.floor(Math.random() * 2000) + '.jpg';
 
-            photo
+            // TODO vscode highlights this await as 'unnecessary'
+            await photo
                 .resize(256, 256) // resize
                 .quality(60) // set JPEG quality
                 .greyscale() // set greyscale
