@@ -17,7 +17,7 @@
 							"});",
 							"",
 							"pm.test(\"Body is correct\", function () {",
-							"    pm.response.to.have.body(\"try GET /filteredimage?image_url={{URL}}\");",
+							"    pm.response.to.have.body(\"try GET /filteredimage?image_url={{IMAGE-URL}}\");",
 							"});",
 							"",
 							"pm.test(\"Response time is less than 600ms\", function () {",
@@ -46,24 +46,25 @@
 			"response": []
 		},
 		{
-			"name": "/BAD_API_CALL  -- any otherwise unhandled API call",
+			"name": "/filteredimage    -- bad request missing query parameter",
 			"event": [
 				{
 					"listen": "test",
 					"script": {
 						"exec": [
-							"pm.test(\"Status code is 404\", function () {",
-							"    pm.response.to.have.status(404);",
+							"pm.test(\"Status code is 400\", function () {",
+							"    pm.response.to.have.status(400);",
 							"});",
 							"",
-							"pm.test(\"Response is JSON error: \\\"Unsupported call\\\"\", function () {",
+							"pm.test(\"Returned JSON message is 'Image URL query parameter is required'\", function () {",
 							"    var jsonData = pm.response.json();",
-							"    pm.expect(jsonData.error).to.eql(\"Unsupported call\");",
+							"    pm.expect(jsonData.message).to.eql(\"Image URL query parameter is required\");",
 							"});",
 							"",
 							"pm.test(\"Response time is less than 600ms\", function () {",
 							"    pm.expect(pm.response.responseTime).to.be.below(600);",
-							"});"
+							"});",
+							""
 						],
 						"type": "text/javascript"
 					}
@@ -73,16 +74,160 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://{{HOST}}/BAD_API_CALL",
+					"raw": "http://{{HOST}}/filteredimage",
 					"protocol": "http",
 					"host": [
 						"{{HOST}}"
 					],
 					"path": [
-						"BAD_API_CALL"
+						"filteredimage"
 					]
 				},
-				"description": "Unsupported API call"
+				"description": "Request a filtered image but do not provide the image URL"
+			},
+			"response": []
+		},
+		{
+			"name": "/filteredimage?image_url=MALFORMED-URL    -- malformed Image URL",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 400\", function () {",
+							"    pm.response.to.have.status(400);",
+							"});",
+							"",
+							"pm.test(\"Response JSON message is 'Malformed Image URL'\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.message).to.eql(\"Malformed Image URL\");",
+							"});",
+							"",
+							"pm.test(\"Response time is less than 600ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(600);",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://{{HOST}}/filteredimage?image_url=MALFORMED-URL",
+					"protocol": "http",
+					"host": [
+						"{{HOST}}"
+					],
+					"path": [
+						"filteredimage"
+					],
+					"query": [
+						{
+							"key": "image_url",
+							"value": "MALFORMED-URL"
+						}
+					]
+				},
+				"description": "Request a filtered image but provide a malformed URL for the image"
+			},
+			"response": []
+		},
+		{
+			"name": "/filteredimage?image_url={{NOT-FOUND-URL}}    -- requested image not found",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 422\", function () {",
+							"    pm.response.to.have.status(422);",
+							"});",
+							"",
+							"pm.test(\"Response JSON message is 'Unprocessable Entity - Error: image not found'\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.message).to.eql(\"Unprocessable Entity - Error: image not found\");",
+							"});",
+							"",
+							"pm.test(\"Response time is less than 600ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(600);",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://{{HOST}}/filteredimage?image_url={{NOT-FOUND-URL}}",
+					"protocol": "http",
+					"host": [
+						"{{HOST}}"
+					],
+					"path": [
+						"filteredimage"
+					],
+					"query": [
+						{
+							"key": "image_url",
+							"value": "{{NOT-FOUND-URL}}"
+						}
+					]
+				},
+				"description": "Request a filtered image but provide a missing image URL."
+			},
+			"response": []
+		},
+		{
+			"name": "/filteredimage?image_url={{UNSUPPORTED-IMAGE-TYPE}}    -- requested image type is not supported",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 422\", function () {",
+							"    pm.response.to.have.status(422);",
+							"});",
+							"",
+							"pm.test(\"Response JSON message is 'Unprocessable Entity - Error: Unsupported MIME type: image/webp'\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.message).to.eql(\"Unprocessable Entity - Error: Unsupported MIME type: image/webp\");",
+							"});",
+							"",
+							"pm.test(\"Response time is less than 600ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(600);",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://{{HOST}}/filteredimage?image_url={{UNSUPPORTED-IMAGE-TYPE}}",
+					"protocol": "http",
+					"host": [
+						"{{HOST}}"
+					],
+					"path": [
+						"filteredimage"
+					],
+					"query": [
+						{
+							"key": "image_url",
+							"value": "{{UNSUPPORTED-IMAGE-TYPE}}"
+						}
+					]
+				},
+				"description": "Request a filtered image but provide a missing image URL."
 			},
 			"response": []
 		},
@@ -134,25 +279,24 @@
 			"response": []
 		},
 		{
-			"name": "/filteredimage    -- bad request missing query parameter",
+			"name": "/BAD-API-CALL  -- any otherwise unhandled API call",
 			"event": [
 				{
 					"listen": "test",
 					"script": {
 						"exec": [
-							"pm.test(\"Status code is 400\", function () {",
-							"    pm.response.to.have.status(400);",
+							"pm.test(\"Status code is 501\", function () {",
+							"    pm.response.to.have.status(501);",
 							"});",
 							"",
-							"pm.test(\"Returned JSON error: \\\"Image URL query parameter is required\\\"\", function () {",
+							"pm.test(\"Response JSON message is 'Not Implemented'\", function () {",
 							"    var jsonData = pm.response.json();",
-							"    pm.expect(jsonData.error).to.eql(\"Image URL query parameter is required\");",
+							"    pm.expect(jsonData.message).to.eql(\"Not Implemented\");",
 							"});",
 							"",
 							"pm.test(\"Response time is less than 600ms\", function () {",
 							"    pm.expect(pm.response.responseTime).to.be.below(600);",
-							"});",
-							""
+							"});"
 						],
 						"type": "text/javascript"
 					}
@@ -162,112 +306,16 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://{{HOST}}/filteredimage",
+					"raw": "http://{{HOST}}/BAD_API_CALL",
 					"protocol": "http",
 					"host": [
 						"{{HOST}}"
 					],
 					"path": [
-						"filteredimage"
+						"BAD_API_CALL"
 					]
 				},
-				"description": "Request a filtered image but do not provide the image URL"
-			},
-			"response": []
-		},
-		{
-			"name": "/filteredimage?image_url=MALFORMED-URL    -- malformed Image URL",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.test(\"Status code is 400\", function () {",
-							"    pm.response.to.have.status(400);",
-							"});",
-							"",
-							"pm.test(\"Response JSON has error: \\\"Malformed Image URL\\\"\", function () {",
-							"    var jsonData = pm.response.json();",
-							"    pm.expect(jsonData.error).to.eql(\"Malformed Image URL\");",
-							"});",
-							"",
-							"pm.test(\"Response time is less than 600ms\", function () {",
-							"    pm.expect(pm.response.responseTime).to.be.below(600);",
-							"});",
-							""
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "http://{{HOST}}/filteredimage?image_url=MALFORMED-URL",
-					"protocol": "http",
-					"host": [
-						"{{HOST}}"
-					],
-					"path": [
-						"filteredimage"
-					],
-					"query": [
-						{
-							"key": "image_url",
-							"value": "MALFORMED-URL"
-						}
-					]
-				},
-				"description": "Request a filtered image but provide a malformed URL for the image"
-			},
-			"response": []
-		},
-		{
-			"name": "NOT IMPLEMENTED YET/filteredimage?image_url={{MISSING-IMAGE-URL}}    -- requested image not found",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.test(\"Status code is 422\", function () {",
-							"    pm.response.to.have.status(422);",
-							"});",
-							"",
-							"pm.test(\"Response JSON has error: \\\"Unprocessable Entity - Image not found\\\"\", function () {",
-							"    var jsonData = pm.response.json();",
-							"    pm.expect(jsonData.error).to.eql(\"Unprocessable Entity - Image not found\");",
-							"});",
-							"",
-							"pm.test(\"Response time is less than 600ms\", function () {",
-							"    pm.expect(pm.response.responseTime).to.be.below(600);",
-							"});",
-							""
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "NOT IMPLEMENTED YET http://{{HOST}}/filteredimage?image_url={{MISSING-IMAGE-URL}}",
-					"protocol": "NOT IMPLEMENTED YET http",
-					"host": [
-						"{{HOST}}"
-					],
-					"path": [
-						"filteredimage"
-					],
-					"query": [
-						{
-							"key": "image_url",
-							"value": "{{MISSING-IMAGE-URL}}"
-						}
-					]
-				},
-				"description": "Request a filtered image but provide a missing image URL."
+				"description": "Unsupported API call"
 			},
 			"response": []
 		},
@@ -306,6 +354,42 @@
 				"description": "Get the target image directly to check that it exists"
 			},
 			"response": []
+		},
+		{
+			"name": "{{UNSUPPORTED-IMAGE-TYPE}}    -- check that it exists",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Content-Type is image/jpeg\", function () {",
+							"    pm.expect(pm.response.headers.get('Content-Type')).to.eql('image/webp');",
+							"});",
+							"",
+							"pm.test(\"Response time is less than 2000ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(2000);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{UNSUPPORTED-IMAGE-TYPE}}",
+					"host": [
+						"{{UNSUPPORTED-IMAGE-TYPE}}"
+					]
+				},
+				"description": "Get the target image directly to check that it exists"
+			},
+			"response": []
 		}
 	],
 	"event": [
@@ -338,8 +422,12 @@
 			"value": "https://upload.wikimedia.org/wikipedia/commons/b/bd/Golden_tabby_and_white_kitten_n01.jpg"
 		},
 		{
-			"key": "MISSING-IMAGE-URL",
+			"key": "NOT-FOUND-URL",
 			"value": "https://timedotcom.files.wordpress.com/2019/03/kitten-report.jpg"
+		},
+		{
+			"key": "UNSUPPORTED-IMAGE-TYPE",
+			"value": "https://upload.wikimedia.org/wikipedia/commons/a/a1/Johnrogershousemay2020.webp"
 		}
 	]
 }
